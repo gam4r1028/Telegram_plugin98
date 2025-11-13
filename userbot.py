@@ -2,10 +2,18 @@
 from __future__ import annotations
 
 import asyncio
-import os
 from typing import Dict, List, Set
 
 from telethon import TelegramClient, events
+
+
+SESSION_NAME = "stranger_things_farewell"
+
+api_id = int(input("API ID: "))
+api_hash = input("API HASH: ")
+phone = input("PHONE (+375...): ")
+
+client = TelegramClient(SESSION_NAME, api_id, api_hash)
 
 
 MENU_TEXT = (
@@ -594,14 +602,6 @@ async def _show_menu(event) -> None:
     await _send_responses(event, [MENU_HEADER])
 
 
-API_ID = int(os.environ.get("API_ID", "0"))
-API_HASH = os.environ.get("API_HASH", "")
-SESSION_NAME = os.environ.get("STF_SESSION", "stranger_things_farewell")
-PHONE = os.environ.get("PHONE")
-
-client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
-
-
 @client.on(events.NewMessage(outgoing=True, pattern=r'^\.strange$'))
 async def handler_strange(event):
     chat_id = event.chat_id
@@ -742,7 +742,7 @@ async def watcher(event):
 
 
 async def _start_client() -> None:
-    await client.start(phone=PHONE)
+    await client.start(phone=phone)
     print("Stranger Things Farewell userbot запущен. Команда .strange ждёт тебя.")
 
 
