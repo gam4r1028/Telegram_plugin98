@@ -568,7 +568,7 @@ FOLLOW_UP_REMINDER = (
 )
 
 if loader is None:
-    class _BaseModule:  # type: ignore
+    class _BasePlugin:  # type: ignore
         pass
 
     def _command_stub(*_args, **_kwargs):  # type: ignore
@@ -577,11 +577,14 @@ if loader is None:
 
         return decorator
 else:
-    _BaseModule = loader.Module  # type: ignore
-    _command_stub = loader.command  # type: ignore
+    _BasePlugin = getattr(loader, "BasePlugin", getattr(loader, "Module", object))  # type: ignore
+    _command_stub = getattr(loader, "command", lambda *_a, **_k: (lambda f: f))  # type: ignore
 
 
-class StrangerThingsFarewellMod(_BaseModule):
+__all__ = ["StrangerThingsFarewellPlugin"]
+
+
+class StrangerThingsFarewellPlugin(_BasePlugin):
     """Ностальгический гигантский плагин для проводника по Stranger Things."""
 
     strings = {"name": "StrangerThingsFarewell"}
