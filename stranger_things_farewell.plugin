@@ -1,6 +1,11 @@
 """Stranger Things Farewell plugin for exteraGram."""
 from __future__ import annotations
 
+__version__ = (1, 0, 1)
+__config__ = {}
+__id__ = "stranger_things_farewell"
+__name__ = "Stranger Things Farewell"
+
 from typing import Dict, List
 
 try:
