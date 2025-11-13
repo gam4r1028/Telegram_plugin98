@@ -16,7 +16,10 @@ from typing import Dict, List
 try:
     from .. import loader  # type: ignore
 except Exception:  # pragma: no cover
-    loader = None  # type: ignore
+    try:
+        import loader  # type: ignore
+    except Exception:  # pragma: no cover
+        loader = None  # type: ignore
 
 
 MENU_TEXT = (
@@ -568,7 +571,7 @@ FOLLOW_UP_REMINDER = (
 )
 
 if loader is None:
-    class _BasePlugin:  # type: ignore
+    class BasePlugin:  # type: ignore
         pass
 
     def _command_stub(*_args, **_kwargs):  # type: ignore
@@ -577,14 +580,14 @@ if loader is None:
 
         return decorator
 else:
-    _BasePlugin = getattr(loader, "BasePlugin", getattr(loader, "Module", object))  # type: ignore
+    BasePlugin = getattr(loader, "BasePlugin", getattr(loader, "Module", object))  # type: ignore
     _command_stub = getattr(loader, "command", lambda *_a, **_k: (lambda f: f))  # type: ignore
 
 
 __all__ = ["StrangerThingsFarewellPlugin"]
 
 
-class StrangerThingsFarewellPlugin(_BasePlugin):
+class StrangerThingsFarewellPlugin(BasePlugin):
     """Ностальгический гигантский плагин для проводника по Stranger Things."""
 
     strings = {"name": "StrangerThingsFarewell"}
