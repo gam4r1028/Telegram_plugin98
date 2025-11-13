@@ -5,6 +5,11 @@ __version__ = (1, 0, 1)
 __config__ = {}
 __id__ = "stranger_things_farewell"
 __name__ = "Stranger Things Farewell"
+__author__ = "Stranger Things Farewell Collective"
+__description__ = (
+    "Ностальгический плагин-проводник по сериалу Stranger Things с длинными текстами,"
+    " воспоминаниями, фактами и прощальной речью."
+)
 
 from typing import Dict, List
 
