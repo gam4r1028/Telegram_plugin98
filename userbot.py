@@ -29,6 +29,7 @@ MENU_TEXT = (
     "10 — Атмосферные факты\n"
     "11 — Музыкальная атмосфера\n"
     "12 — Список команд (.help)\n"
+    "13 — О проекте (about)\n"
     "0 — Пересказать всё подряд"
 )
 
@@ -50,8 +51,9 @@ HELP_TEXT = """<b>Stranger Things Farewell Bot — проводник по во�
 <b>.facts</b> — огромная подборка фактов о создании шоу, вдохновении, актёрах и культурном влиянии.
 <b>.music</b> — описывает музыкальную палитру Stranger Things, выделяет треки, создающие звук восьмидесятых.
 <b>.farewell</b> — большое прощальное письмо фанатам, тёплый монолог о том, как мы росли вместе с героями и почему финал важен.
+<b>.about</b> — рассказывает о Stranger Things Farewell Initiative, даёт представление о масштабе кампании, уникальных идентификаторах и впечатлениях участников.
 
-Каждый раздел можно открыть как прямой командой, так и через меню. Когда диалог активен, бот реагирует на цифры 0–12 и на слово MENU, чтобы вернуться к списку разделов. Ответы всегда длинные, эмоциональные и насыщенные деталями, так что устраивайся поудобнее — впереди целая история."""
+Каждый раздел можно открыть как прямой командой, так и через меню. Когда диалог активен, бот реагирует на цифры 0–13 и на слово MENU, чтобы вернуться к списку разделов. Ответы всегда длинные, эмоциональные и насыщенные деталями, так что устраивайся поудобнее — впереди целая история."""
 
 
 TEXTS: Dict[str, str] = {}
@@ -437,6 +439,63 @@ _register_text(
 """
 )
 _register_text(
+    "about",
+    """
+Когда наступает сумеречный час и окна Хоукинса подсвечиваются мягким неоном, Stranger Things Farewell Initiative раскрывает свои двери, приглашая всех желающих пережить историю заново. Это не просто подборка воспоминаний, а тщательно созданная сцена, где каждый луч света и каждый звук возвращают нас в ту самую атмосферу, от которой замирает сердце.
+
+Stranger Things Farewell Initiative — это крупная кампания, посвящённая моменту, когда легенда подходит к финальному аккорду. Она охватывает все сезоны сериала и превращает их в последовательность эмоциональных станций, через которые проходит каждый участник. Здесь мы не только вспоминаем сюжет, но и проживаем его, будто сидим в тёмном кинозале вместе с героями.
+
+Эта инициатива посвящена выходу пятого, заключительного сезона. Мы воспринимаем его не как окончание, а как вершину путешествия, в которой соединяются все линии и чувства. Пятый сезон становится точкой сборки, куда ведут нити памяти, протянутые через прошлые годы, и мы предлагаем почувствовать это ожидание каждой клеточкой.
+
+Мы собираем зрителей, чтобы провести их по всем этапам истории Stranger Things. Наша цель — подарить возможность вспомнить, как росли герои, как менялись их отношения, как Хоукинс из маленького городка превратился в символ борьбы. Каждая остановка — это короткая пауза, чтобы вдохнуть аромат прошлого и услышать шорохы Верхом дна.
+
+С самого момента запуска инициативы мы представляем её как эмоциональное путешествие. Здесь есть место и страху, и восторгу, и тихой грусти, которую чувствуешь, когда закрывается любимый альбом. Инициатива держит руку участника, ведёт его по знакомым улицам и напоминает, что история ещё звучит внутри нас.
+
+В центре инициативы стоит бот, который знает, как переводить воспоминания на язык живых разговоров. Он — проводник, способный подстроиться под настроение собеседника, задать нужный темп и подарить ощущение, будто вы общаетесь с давним другом, который хранит общие тайны.
+
+Через его команды человек видит полную карту проекта: сезоны, персонажи, ключевые события, атмосферные факты, музыку восьмидесятых, детально разобранные эпизоды и финальное письмо. Ничего не ускользает, каждая часть истории встроена в общую ткань, образуя цельную капсулу воспоминаний.
+
+Путешествие начинается с предупреждения о спойлерах, потому что мы уважаем готовность каждого погружаться в память. Согласие становится ритуалом, после которого меню вспыхивает как щит с символами всех сезонов, и участник выбирает, куда отправиться дальше.
+
+Каждый сезон раскрывается через длинные, эмоциональные тексты. Первый напоминает о дружбе и лампочках, второй — о тени, прячущейся под городом, третий — о летнем сиянии Starcourt Mall, четвёртый — о красном небе Верхом дна, пятый — о том, что всё это ведёт к финальному шагу. Мы не просто пересказываем, мы возвращаем чувство, с которым когда-то закрывали глаза после серии.
+
+Мы позволяем участнику вспомнить главные события так, будто он снова держит в руках вырезки из газет, фотографии и карты расследований. В каждом разделе описаны не только факты, но и их эмоциональный след: страх, радость, надежда, смятение.
+
+Персонажи возвращаются в жизнь с особой нежностью. Мы рассказываем о Майке и его верности, о Джойс и её бесконечной любви, о Хоппере и его второй попытке стать отцом, о Макс, которая нашла силу в музыке, и о множестве других. Каждый герой получает своё место в памяти инициативы.
+
+Музыкальные описания создают звуковой коридор, в котором слышно биение синтезаторов и шорох плёнки. Мы рассказываем об атмосфере восьмидесятых, о песнях, которые сопровождали нас, и о том, как они продолжают звучать, даже когда экран темнеет.
+
+Отдельный раздел с событиями складывается в хронику, где видно, как менялся город, как его жители учились сопротивляться страху, как двери в Верхом дно то открывались, то закрывались. Это дневник, который хочется перечитывать.
+
+Факты собраны в один большой пласт информации. Они показывают, какие решения стояли за кадром, какие детали вплетались в сюжет, какие отсылки к культуре восьмидесятых оживали в каждой серии. Эти факты помогают почувствовать масштаб инициативы и глубину её исследования.
+
+А кульминация — прощальное письмо, которое звучит как тёплый монолог. Оно помогает примириться с тем, что история подходит к завершению, но оставляет после себя свет. Это письмо не торопит, а просто сидит рядом и рассказывает, почему всё это было важно.
+
+Таким образом инициатива превращается в единую капсулу воспоминаний. Она бережёт эмоции, помогает пережить ожидание финала и поддерживает атмосферу общности, когда хочется поделиться чувствами с теми, кто понимает.
+
+Уникальные идентификаторы инициативы:
+Уникальный идентификатор аккаунта акции: STF-ACT-113
+Аккаунт участника: Mandx
+Версия инициативы: Farewell Edition v1.1
+Команда разработки: RedGate Collective × Eleven Stories Lab
+Дата запуска инициативы: 2025
+
+Каждый идентификатор — это маленькая печать подлинности, подтверждающая, что перед нами тщательно организованное путешествие. Они связывают участников общей символикой и напоминают, что инициатива живёт и развивается.
+
+Отзывы участников инициативы:
+«Сцены из третьего сезона вспыхнули перед глазами так, будто я снова стою в Starcourt Mall. Это путешествие возвращает дыхание восьмидесятых.» — @StarcourtMemory
+«Раздел с письмом Farewell раскрыл те чувства, о которых трудно говорить. После него становится легче принять грядущий финал.» — @HawkinsEcho
+«Воспоминания по первому сезону вернули ту самую искру 2016 года. Снова почувствовал себя ребёнком, который боится, но идёт вперёд.» — @MindflayerObserver
+«Музыкальная глава помогла собрать личный плейлист для ожидания пятого сезона. Слушаю и будто путешествую вместе с героями.» — @RetroSignal
+«Разбор эпизодов напомнил, сколько деталей я пропустил. Теперь воспринимаю историю как мозаичный витраж, где нет случайных осколков.» — @UpsideGuide
+«Прощальное письмо стало вечерним костром, возле которого можно сидеть молча и просто вспоминать. Это очень по-настоящему.» — @ElevenHeart
+
+Эти голоса показывают, что инициатива работает как мост между прошлым и будущим сезона. Люди чувствуют поддержку, делятся впечатлениями и находят в тексте отражение собственных историй.
+
+Финальное кинематографичное завершение звучит тихо: будто камера медленно отъезжает от компании друзей, а над Хоукинсом поднимается утренний туман. Stranger Things Farewell Initiative обещает сопровождать участников до самого финального титра и дальше, пока память о приключении живёт в нас.
+"""
+)
+_register_text(
     "farewell",
     """
 Когда вспоминаешь Stranger Things, сначала слышишь шум велосипедных шин по влажному асфальту. Будто где-то рядом снова начинается приключение, и твоё детство разворачивается, как плёнка старой камеры. Мы стоим на пороге финального сезона и понимаем, что эта история — больше, чем просто сериал. Это кусочек времени, который мы прожили вместе с героями.
@@ -540,11 +599,14 @@ CHOICES = {
     "10": "facts",
     "11": "music",
     "12": "help",
+    "13": "about",
     "0": "everything",
+    "about": "about",
+    "о проекте": "about",
 }
 
 MENU_HEADER = (
-    "Главное меню воспоминаний Stranger Things. Введи цифру 0–12, напиши MENU или воспользуйся командами:\n" + MENU_TEXT
+    "Главное меню воспоминаний Stranger Things. Введи цифру 0–13, напиши MENU или воспользуйся командами:\n" + MENU_TEXT
 )
 
 SPOILER_WARNING = (
@@ -552,7 +614,7 @@ SPOILER_WARNING = (
 )
 
 AGREEMENT_REPLY = (
-    "Отлично! Приготовься к путешествию по воспоминаниям. Используй цифры 0–12 или команды, чтобы выбирать разделы.\n"
+    "Отлично! Приготовься к путешествию по воспоминаниям. Используй цифры 0–13 или команды, чтобы выбирать разделы.\n"
     + MENU_TEXT
 )
 
@@ -602,7 +664,7 @@ async def _show_menu(event) -> None:
     await _send_responses(event, [MENU_HEADER])
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.strange$'))
+@client.on(events.NewMessage(pattern=r'^\.strange$'))
 async def handler_strange(event):
     chat_id = event.chat_id
     awaiting_confirmation.add(chat_id)
@@ -616,7 +678,7 @@ async def handler_strange(event):
     )
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.stop$'))
+@client.on(events.NewMessage(pattern=r'^\.stop$'))
 async def handler_stop(event):
     chat_id = event.chat_id
     awaiting_confirmation.discard(chat_id)
@@ -624,7 +686,7 @@ async def handler_stop(event):
     await _send_responses(event, ["Бот остановлен. Если захочешь вернуться в Хоукинс — напиши .strange."])
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.menu$'))
+@client.on(events.NewMessage(pattern=r'^\.menu$'))
 async def handler_menu(event):
     if event.chat_id not in active_sessions:
         await _send_responses(event, ["Меню появится после согласия со спойлерами. Напиши .strange, чтобы начать."])
@@ -632,69 +694,74 @@ async def handler_menu(event):
     await _show_menu(event)
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.help$'))
+@client.on(events.NewMessage(pattern=r'^\.help$'))
 async def handler_help(event):
     await _send_responses(event, _chunk_text(HELP_TEXT))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.season1$'))
+@client.on(events.NewMessage(pattern=r'^\.season1$'))
 async def handler_season1(event):
     await _send_responses(event, _topic_text("season1"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.season2$'))
+@client.on(events.NewMessage(pattern=r'^\.season2$'))
 async def handler_season2(event):
     await _send_responses(event, _topic_text("season2"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.season3$'))
+@client.on(events.NewMessage(pattern=r'^\.season3$'))
 async def handler_season3(event):
     await _send_responses(event, _topic_text("season3"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.season4$'))
+@client.on(events.NewMessage(pattern=r'^\.season4$'))
 async def handler_season4(event):
     await _send_responses(event, _topic_text("season4"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.season5$'))
+@client.on(events.NewMessage(pattern=r'^\.season5$'))
 async def handler_season5(event):
     await _send_responses(event, _topic_text("season5"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.characters$'))
+@client.on(events.NewMessage(pattern=r'^\.characters$'))
 async def handler_characters(event):
     await _send_responses(event, _topic_text("characters"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.events$'))
+@client.on(events.NewMessage(pattern=r'^\.events$'))
 async def handler_events(event):
     await _send_responses(event, _topic_text("events"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.episodes$'))
+@client.on(events.NewMessage(pattern=r'^\.episodes$'))
 async def handler_episodes(event):
     await _send_responses(event, _topic_text("episodes"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.facts$'))
+@client.on(events.NewMessage(pattern=r'^\.facts$'))
 async def handler_facts(event):
     await _send_responses(event, _topic_text("facts"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.music$'))
+@client.on(events.NewMessage(pattern=r'^\.music$'))
 async def handler_music(event):
     await _send_responses(event, _topic_text("music"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.farewell$'))
+@client.on(events.NewMessage(pattern=r'^\.farewell$'))
 async def handler_farewell(event):
     await _send_responses(event, _topic_text("farewell"))
 
 
-@client.on(events.NewMessage(outgoing=True, pattern=r'^\.everything$'))
+@client.on(events.NewMessage(pattern=r'^\.everything$'))
 async def handler_everything(event):
     await _send_responses(event, _topic_text("everything"))
+
+
+@client.on(events.NewMessage(pattern=r'^\.about$'))
+async def handler_about(event):
+    await _send_responses(event, _topic_text("about"))
 
 
 @client.on(events.NewMessage())
@@ -706,7 +773,7 @@ async def watcher(event):
     cleaned = text.strip()
     if not cleaned:
         return
-    if event.out and cleaned.startswith('.'):
+    if cleaned.startswith('.'):
         return
     chat_id = event.chat_id
     lower = cleaned.lower()
@@ -736,7 +803,7 @@ async def watcher(event):
     await _send_responses(
         event,
         [
-            "Я храню только ностальгию. Используй цифры 0–12, напиши MENU или вызови .help для подсказок.",
+            "Я храню только ностальгию. Используй цифры 0–13, напиши MENU или вызови .help для подсказок.",
         ],
     )
 
