@@ -1,45 +1,54 @@
-"""Stranger Things Farewell plugin for exteraGram."""
-from __future__ import annotations
-
-__version__ = (1, 0, 1)
-__config__ = {}
 __id__ = "stranger_things_farewell"
 __name__ = "Stranger Things Farewell"
-__author__ = "Stranger Things Farewell Collective"
-__description__ = (
-    "Ностальгический плагин-проводник по сериалу Stranger Things с длинными текстами,"
-    " воспоминаниями, фактами и прощальной речью."
-)
+__description__ = "Ностальгический плагин-проводник по сериалу Stranger Things"
+__version__ = "1.1"
+__author__ = "Stranger Things Farewell Team"
+__min_version__ = "11.12.0"
 
-from typing import Dict, List
-
-try:
-    from .. import loader  # type: ignore
-except Exception:  # pragma: no cover
-    try:
-        import loader  # type: ignore
-    except Exception:  # pragma: no cover
-        loader = None  # type: ignore
+from base_plugin import BasePlugin, HookResult, HookStrategy
+from client_utils import send_text, run_on_queue
+from typing import Dict, List, Optional, Set
 
 
-MENU_TEXT = (
-    "1 — Сезон 1\n"
-    "2 — Сезон 2\n"
-    "3 — Сезон 3\n"
-    "4 — Сезон 4\n"
-    "5 — Сезон 5\n"
-    "6 — Персонажи\n"
-    "7 — Главные события\n"
-    "8 — Разбор серий\n"
-    "9 — Прощание с сериалом\n"
-    "10 — Атмосферные факты\n"
-    "11 — Музыкальная атмосфера\n"
-    "12 — Список команд (.help)\n"
-    "0 — Пересказать всё подряд"
-)
-
-
-HELP_TEXT = """<b>Stranger Things Farewell Bot — проводник по воспоминаниям.</b>
+class StrangerThingsFarewellPlugin(BasePlugin):
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "Stranger Things Farewell"
+        self.description = "Проводник по сериалу Stranger Things"
+        self.version = (1, 1, 0)
+        self._menu_text = """
+1 — Сезон 1
+2 — Сезон 2
+3 — Сезон 3
+4 — Сезон 4
+5 — Сезон 5
+6 — Персонажи
+7 — Главные события
+8 — Разбор серий
+9 — Прощание с сериалом
+10 — Атмосферные факты
+11 — Музыкальная атмосфера
+12 — Список команд (.help)
+0 — Пересказать всё подряд
+"""
+        self._menu_header = """
+Главное меню воспоминаний Stranger Things. Введи цифру 0–12, напиши MENU или воспользуйся командами:
+1 — Сезон 1
+2 — Сезон 2
+3 — Сезон 3
+4 — Сезон 4
+5 — Сезон 5
+6 — Персонажи
+7 — Главные события
+8 — Разбор серий
+9 — Прощание с сериалом
+10 — Атмосферные факты
+11 — Музыкальная атмосфера
+12 — Список команд (.help)
+0 — Пересказать всё подряд
+"""
+        self._help_text = """
+<b>Stranger Things Farewell Bot — проводник по воспоминаниям.</b>
 
 <b>.strange</b> — запускает диалог, выводит предупреждение о спойлерах, после согласия открывает главное меню с разделами.
 <b>.stop</b> — мгновенно завершает беседу, сбрасывает состояние и приглашает вернуться, когда захочется снова окунуться в атмосферу Хоукинса.
@@ -57,19 +66,38 @@ HELP_TEXT = """<b>Stranger Things Farewell Bot — проводник по во�
 <b>.music</b> — описывает музыкальную палитру Stranger Things, выделяет треки, создающие звук восьмидесятых.
 <b>.farewell</b> — большое прощальное письмо фанатам, тёплый монолог о том, как мы росли вместе с героями и почему финал важен.
 
-Каждый раздел можно открыть как прямой командой, так и через меню. Когда диалог активен, бот реагирует на цифры 0–12 и на слово MENU, чтобы вернуться к списку разделов. Ответы всегда длинные, эмоциональные и насыщенные деталями, так что устраивайся поудобнее — впереди целая история."""
-
-
-TEXTS: Dict[str, str] = {}
-
-
-def _register_text(key: str, text: str) -> None:
-    TEXTS[key] = text.strip()
-
-
-_register_text(
-    "season1",
-    """
+Каждый раздел можно открыть как прямой командой, так и через меню. Когда диалог активен, бот реагирует на цифры 0–12 и на слово MENU, чтобы вернуться к списку разделов. Ответы всегда длинные, эмоциональные и насыщенные деталями, так что устраивайся поудобнее — впереди целая история.
+"""
+        self._spoiler_warning = """
+Внимание, дальше могут быть спойлеры по Stranger Things. Вы согласны продолжить? (да/нет)
+"""
+        self._agreement_reply = """
+Отлично! Приготовься к путешествию по воспоминаниям. Используй цифры 0–12 или команды, чтобы выбирать разделы.
+1 — Сезон 1
+2 — Сезон 2
+3 — Сезон 3
+4 — Сезон 4
+5 — Сезон 5
+6 — Персонажи
+7 — Главные события
+8 — Разбор серий
+9 — Прощание с сериалом
+10 — Атмосферные факты
+11 — Музыкальная атмосфера
+12 — Список команд (.help)
+0 — Пересказать всё подряд
+"""
+        self._decline_reply = """
+Хорошо, сохраню тайны Хоукинса до лучших времён. Если захочешь вернуться — напиши .strange.
+"""
+        self._follow_up_reminder = """
+Чтобы открыть следующее воспоминание, введи новую цифру, напиши MENU или используй нужную команду.
+"""
+        self._start_greeting = """
+Привет! Я Stranger Things Farewell Bot — проводник по тёплым воспоминаниям.
+"""
+        self._topic_texts: Dict[str, str] = {
+            "season1": """
 Первый сезон «Stranger Things» начинается с того, как вечерняя партия в подвале заканчивается для друзей пропажей Уилла Байерса, и эта новость будто бы сорвала стоп-кран с обычной жизни Хоукинса. Атмосфера маленького города мгновенно становится настороженной: взрослые пытаются вести себя как обычно, но воздух наполнен тревогой, и мы вместе с персонажами чувствуем, как за знакомыми дверями зарождается нечто невероятное. Именно здесь рождается ощущение, что наша компания друзей — маленький отряд героев, которые ещё не осознают, какую ответственность вскоре возьмут на себя.
 
 Параллельно мы знакомимся с семейной драмой Джойс, которая готова перевернуть весь город ради сына. Её разговоры с лампочками и постоянные попытки доказать полицейскому шефу Хопперу, что Уилл жив, превращают дом Байерсов в символ надежды и отчаянной веры. Этот сюжетный пласт задаёт эмоциональный тон всему сезону: взрослые здесь так же уязвимы, как дети, и именно их вера удерживает мир от окончательного провала в хаос.
@@ -89,11 +117,8 @@ _register_text(
 Вся история первого сезона — это одновременно и признание в любви к приключенческим фильмам восьмидесятых, и попытка рассказать о дружбе без прикрас. Он говорит о детях, которые растут слишком быстро, потому что мир вокруг них ломается по швам, и о том, что тепло родного дома можно найти даже в самых темных коридорах параллельной реальности.
 
 И главное: сезон дарит чувство общности. Каждая реплика, каждый взгляд между героями напоминает, что Stranger Things — это история о людях, которые нашли друг друга, когда никому больше нельзя было поверить. Это начало легенды, после которой уже невозможно вернуться к прежней, спокойной жизни.
-"""
-)
-_register_text(
-    "season2",
-    """
+""",
+            "season2": """
 Второй сезон начинается с ощущения, что Хоукинс пытается жить обычной жизнью, но тень Верхом дна всё ещё лежит на улицах и в сердцах. Уилл возвращается, но его мучают видения, и мы с каждой новой сценой чувствуем, что прошлое не отпустило героев. Это сезон о последствиях: о том, как травма перекраивает дружбу, как страх становится невидимым пассажиром в школьном автобусе, и как важно уметь говорить о том, что ты пережил.
 
 Дастин находит в мусорке тварь, которую называет Д'Артеньяном, и эта странная дружба мгновенно превращает сезон в притчу о доверии. Мы наблюдаем, как мальчик растит существо из Верхом дна, пытаясь доказать, что оно может быть добрым. Тепло его голоса, когда он говорит с «Дартом», подчёркивает главный конфликт: иногда мы хотим верить в лучшее даже тогда, когда очевидны признаки опасности.
@@ -113,11 +138,8 @@ _register_text(
 Эпилог с зимним балом «Снегопад» — долгожданное дыхание. Дети танцуют под музыку восьмидесятых, неловко и трогательно, и на мгновение кажется, что мир снова в порядке. Но камера опускается под школу, и мы видим тень Разумного Гиганта, который всё ещё наблюдает. Сезон заканчивается напоминанием: покой — это лишь временная передышка перед новой бурей.
 
 Второй сезон — это взросление истории. Он показывает, что чудовища приходят не только из порталов, но и из страхов, горя, из молчаливых пауз между близкими людьми. И именно в этих трещинах рождается новая сила, которую герои несут с собой дальше.
-"""
-)
-_register_text(
-    "season3",
-    """
+""",
+            "season3": """
 Третий сезон встречает нас летним воздухом: огни Starcourt Mall переливаются, словно витражи будущего, а наши герои впервые позволяют себе беспечность. Хоукинс кажется свободнее — подростки работают, флиртуют, спорят о фильмах, и всё напоминает долгие каникулы. Но под этим цветным фасадом мы чувствуем, что тьма ищет новый путь обратно, и что радость здесь всегда соседствует с угрозой.
 
 Дастин возвращается из лагеря с историей о девушке-радиолюбителе Сьюзи, и их дуэт превращает научные эксперименты в романтическую комедию. Подростки строят антенну на крыше, смешно спорят о сигнале, и зритель получает дозу чистой дружеской химии. Именно через эту линию мы видим, как детские мечты постепенно переходят во взрослые отношения.
@@ -137,11 +159,8 @@ _register_text(
 Кульминация в Starcourt Mall — смесь блокбастера и трагедии. Хоппер и Джойс пробираются в русскую базу, подростки отвлекают монстра, а робинзоны из мороженого пытаются остаться в живых. Жертва Хоппера звучит особенно громко: он исчезает в яркой вспышке, и мы вместе с героями верим, что он исчез навсегда. Слёзы Эль, которая читает его письмо, завершают сезон на ноте потерянного тепла.
 
 Финал заставляет героев покинуть Хоукинс: Байерсы и Эль собирают коробки, оставляют свои комнаты, а мы понимаем, что детство официально кончилось. Но на горизонте уже маячит надежда — сцена в Камчатке намекает, что Хоппер жив, и мы снова чувствуем, как Stranger Things умеет балансировать между прощанием и обещанием.
-"""
-)
-_register_text(
-    "season4",
-    """
+""",
+            "season4": """
 Четвёртый сезон — это погружение в самый мрачный кошмар Хоукинса. С первых сцен мы понимаем, что мир изменился: герои живут в разных местах, а прошлое настигает их через новые кошмары. Атмосфера становится плотной, как туман на берегу, и каждый эпизод звучит как глава из готического романа, смешанного с трагедией о взрослении.
 
 Векна появляется как воплощение травмы и вины. Его голос в голове подростков напоминает внутренние демоны, с которыми они так долго пытались справиться в одиночку. Образы парящих в воздухе жертв, перевёрнутые тела и плачущие окна делают сезон самым страшным. Здесь Stranger Things превращается в чистый хоррор, сохраняя при этом сердечную искренность.
@@ -161,11 +180,8 @@ _register_text(
 Финал сезона оставляет нас на краю пропасти: Векна пережил нападение, Хоукинс разорван, а в воздухе парят частицы из Верхом дна. Герои стоят на холме, смотрят на красное небо, и мы понимаем, что пятый сезон будет решающим. Здесь надежда и страх переплетаются в одно чувство.
 
 Четвёртый сезон — это манифест о том, что тьма — не только монстр в углу, но и чувства, которые мы прячем. Он учит, что спасение приходит, когда мы делимся своими тайнами, когда признаём боль и позволяем друзьям держать нас за руку. Этот сезон делает Stranger Things взрослее, но не отнимает у него душу.
-"""
-)
-_register_text(
-    "season5",
-    """
+""",
+            "season5": """
 Пятый сезон пока скрыт за занавесом ожиданий, но мы уже чувствуем, как он будет звучать. Это финальная глава, и потому она несёт в себе и тревогу, и предвкушение. Хоукинс расколот, частицы Верхом дна кружат в воздухе, и герои стоят на пороге битвы, которая решит судьбу мира. Мы представляем, как улицы города наполнятся туманом, а небо вспыхнет красными молниями — финальный аккорд должен быть масштабным и одновременно очень личным.
 
 Создатели сериала обещали, что пятый сезон вернёт камерную атмосферу первого, но при этом доведёт мифологию до эпического размаха. Значит, нас ждёт сочетание школьных коридоров, где шепчутся подростки, и огромных порталов, где сталкиваются армии. Это как будто старый друг пригласил нас в знакомый подвал, но теперь на стенах висят карты всего мира.
@@ -185,11 +201,8 @@ _register_text(
 Музыка пятого сезона, вероятно, станет сплетением всех мотивов, что мы слышали раньше. Возможно, мы снова услышим синтезаторы, которые сопровождали детство героев, и одновременно — новые треки, отражающие их взрослость. Финальная музыка должна стать саундтреком к прощанию, которое оставит в сердце тёплую пустоту.
 
 И, конечно, финал обязательно подарит нам эпилог. Может быть, мы увидим Хоукинс через несколько лет, где дети выросли и вспоминают ту ночь, когда закрыли портал. Может быть, мы окажемся на школьном дворе, где звучит тихая мелодия, а герои улыбаются друг другу, зная, что чудеса были реальны. Как бы ни сложилась история, пятый сезон станет письмом поклонникам, в котором каждая строка — благодарность за то, что мы были рядом.
-"""
-)
-_register_text(
-    "characters",
-    """
+""",
+            "characters": """
 <b>Майк Уилер</b> — сердечный лидер отряда. В первом сезоне он словно юный герой приключенческой книги, который верит в чудеса и дружбу. С каждой частью истории он учится говорить о своих чувствах, оставаясь голосом, который вдохновляет других не сдаваться. Его вера в Одиннадцать стала якорем, удерживающим их мир от разрушения.
 
 <b>Одиннадцать</b> — девочка, выросшая в лаборатории, которая учится быть человеком. Её путь — это история о том, как сила без любви превращается в оружие, а любовь без силы оставляет тебя беззащитным. Эль ищет своё имя, свою семью и своё место, и каждая её победа — это победа над прошлым, в котором она была просто номером.
@@ -229,11 +242,8 @@ _register_text(
 <b>Сьюзи Бингем</b> — маленькое чудо из Юты, подарившее миру «Never Ending Story». Её знания и вера в Дастина помогают спасать друзей, показывая, что любовь и наука могут идти рядом.
 
 Каждый персонаж Stranger Things — это отдельная мелодия, которая складывается в общую симфонию. Они растут, ошибаются, любят и теряют, и именно их человечность делает сериал таким близким. В них мы видим себя — детей, подростков и взрослых, которые мечтают о мире, где дружба сильнее монстров.
-"""
-)
-_register_text(
-    "events",
-    """
+""",
+            "events": """
 1. Пропажа Уилла Байерса — отправная точка всей истории. Обычный вечер, велосипед, темнота на дороге: этот эпизод заставил Хоукинс задуматься о тайных лабораториях и монстрах.
 
 2. Появление Одиннадцати в кафе «Бенни». Тихая девочка в больничном платье, которая ест картошку фри руками, стала первой загадкой для зрителя и спасением для Майка и его друзей.
@@ -273,11 +283,8 @@ _register_text(
 19. Раскол Хоукинса и красное небо. Финал четвёртого сезона превратил город в поле битвы, подготовив почву для великого финала.
 
 20. Подготовка к пятому сезону: герои стоят на холме, и каждый из них понимает, что впереди последняя битва. Этот момент — обещание, что их история завершится достойно.
-"""
-)
-_register_text(
-    "episodes",
-    """
+""",
+            "episodes": """
 Сезон 1, Эпизод 1 «Глава первая: Водитель исчез». Мы знакомимся с мальчиками, которые играют в Dungeons & Dragons, и сразу после партии исчезает Уилл. Серия строит атмосферу маленького города, где каждый шёпот имеет значение, а лаборатория в лесу кажется местом, откуда возвращаются лишь слухи.
 
 Сезон 1, Эпизод 2 «Глава вторая: Странные гости». Майк прячет Одиннадцатую у себя дома, и мы видим, как рождается дружба, основанная на доверии. Джойс продолжает искать сына и замечает, что лампочки мигают — зловещий намёк на связь с другим миром.
@@ -345,11 +352,8 @@ _register_text(
 Сезон 4, Эпизод 8 «Papa». Бреннер пытается снова контролировать Эль, но она выбирает свободу. Друзья готовят план по уничтожению Векны, а в Камчатке начинается битва с демогоргонами.
 
 Сезон 4, Эпизод 9 «The Piggyback». Грандиозный финал: Эль вступает в ментальную битву, Макс становится приманкой, Эдди жертвует собой. Хоукинс разрывается, и мы остаёмся с обещанием пятого сезона.
-"""
-)
-_register_text(
-    "facts",
-    """
+""",
+            "facts": """
 1. Братья Даффер вдохновлялись фильмами Стивена Спилберга, романами Стивена Кинга и атмосферой сериалов конца восьмидесятых.
 2. Рабочее название проекта было «Montauk», и действие первоначально планировали разворачивать на побережье.
 3. Роль Одиннадцати могла достаться другой актрисе, но Милли Бобби Браун произвела настолько сильное впечатление, что выбор стал очевидным.
@@ -400,11 +404,8 @@ _register_text(
 48. Школьные сцены снимались в здании бывшей школы в Атланте, которое переоборудовали под Хоукинс Хай.
 49. Stranger Things вдохновил множество фанатских фестивалей, где реконструируют сцены и костюмы сериала.
 50. Финальный сезон обещает ответить на все загадки, и сценаристы заверяют, что уже знают финальные кадры, которые хотят подарить зрителям.
-"""
-)
-_register_text(
-    "music",
-    """
+""",
+            "music": """
 Музыка Stranger Things — это машина времени, которая переносит нас в эпоху восьмидесятых, где синтезаторы звучат как пульс города, а гитарные рифы заставляют сердце биться быстрее. Каждая песня в сериале — не просто фон, а полноценный герой истории. Давайте вспомним ключевые треки и атмосферу, которую они создают.
 
 «Should I Stay or Should I Go» группы The Clash — семейный гимн Байерсов. Эта песня играет в машине, в спальне Уилла и превращается в ниточку, связывающую его с реальностью, когда он застрял в Верхом дне. Текст композиции словно задаёт главный вопрос сезона: остаться в безопасности или рискнуть ради спасения друга.
@@ -440,11 +441,8 @@ _register_text(
 Оригинальный саундтрек от Kyle Dixon и Michael Stein связывает все сезоны воедино. Его пульсирующие синтезаторы создают чувство тревоги, а нежные мелодии — тепло воспоминаний. В каждом сезоне появляются новые темы, но они всегда возвращают нас к сердцу Stranger Things.
 
 Музыка сериала — это не только набор песен. Это код времени, шифр эмоций. Она помогает вспомнить запах видеопроката, шум аркадных залов, свет гирлянд и радость летнего вечера. Благодаря этим трекам Stranger Things живёт не только на экране, но и в наших плейлистах.
-"""
-)
-_register_text(
-    "farewell",
-    """
+""",
+            "farewell": """
 Когда вспоминаешь Stranger Things, сначала слышишь шум велосипедных шин по влажному асфальту. Будто где-то рядом снова начинается приключение, и твоё детство разворачивается, как плёнка старой камеры. Мы стоим на пороге финального сезона и понимаем, что эта история — больше, чем просто сериал. Это кусочек времени, который мы прожили вместе с героями.
 
 Я помню, как впервые увидел дом Байерсов, заваленный коробками, гирляндами и надеждой. Джойс, которая верила в чудо, заставила поверить и нас. Она показала, что любовь матери может освещать путь даже тогда, когда вокруг только мрак Верхом дна. Её крики, её смех и слёзы — это эмоции каждого из нас, когда мы боролись за тех, кого любим.
@@ -486,11 +484,8 @@ _register_text(
 Я помню, что сериал всегда говорил о том, что семья — это выбор. Что настоящие друзья — это те, кто останется, когда мир перевернётся. Что любовь — это не слабость, а оружие.
 
 И я знаю: когда финальный сезон закончится, мы снова откроем эти воспоминания, как коробку с фотографиями. Мы будем пересматривать сцены, переслушивать песни, пересказывать любимые моменты. Потому что Stranger Things — это не просто сериал. Это часть нашего сердца, который навсегда будет светиться гирляндами, даже если портал закроется.
-"""
-)
-_register_text(
-    "everything",
-    """
+""",
+            "everything": """
 Если выбрать «пересказать всё подряд», бот бережно проведёт тебя через все сезоны, словно листает семейный альбом. Мы вспоминаем, как в первом сезоне пропал Уилл и как огни гирлянд стали азбукой надежды. Мы слышим, как в подвале Майка звучат кости для D&D, чувствуем холод Верхом дна и силу дружбы, которая не сдаётся.
 
 Во втором сезоне мы вместе сталкиваемся с последствиями. Туннели под Хоукинсом, «Снегопад», жертва Боба — всё это складывается в историю о том, как травма превращает детей во взрослых. Мы учимся говорить о страхах и видим, как любовь и смех спасают даже в темноте.
@@ -500,266 +495,242 @@ _register_text(
 Четвёртый сезон опускает на Хоукинс красный туман. Векна напоминает, что боль всегда рядом, если её не выпускать наружу. Мы держим Макс за руку под «Running Up That Hill», снова видим Хоппера и Джойс, и понимаем: тьма сильнее, но и наши связи крепче.
 
 Пятый сезон ещё впереди, но мы уже заполняем пустые страницы ожиданием. Мы верим, что финал подарит ответы, что герои найдут свой путь, а Хоукинс снова засияет. Всё это — одна история о дружбе, семье и о том, как важно не отпускать чудо, даже если мир требует повзрослеть.
-"""
-)
+""",
+        }
+        self._choice_map: Dict[str, str] = {
+            "1": "season1",
+            "2": "season2",
+            "3": "season3",
+            "4": "season4",
+            "5": "season5",
+            "6": "characters",
+            "7": "events",
+            "8": "episodes",
+            "9": "farewell",
+            "10": "facts",
+            "11": "music",
+            "12": "help",
+            "0": "everything",
+        }
+        self._command_aliases: Dict[str, str] = {
+            "0": "everything",
+            "1": "season1",
+            "10": "facts",
+            "11": "music",
+            "12": "help",
+            "2": "season2",
+            "3": "season3",
+            "4": "season4",
+            "5": "season5",
+            "6": "characters",
+            "7": "events",
+            "8": "episodes",
+            "9": "farewell",
+            "all": "everything",
+            "characters": "characters",
+            "episodes": "episodes",
+            "events": "events",
+            "everything": "everything",
+            "facts": "facts",
+            "farewell": "farewell",
+            "music": "music",
+            "overview": "everything",
+            "season1": "season1",
+            "season2": "season2",
+            "season3": "season3",
+            "season4": "season4",
+            "season5": "season5",
+        }
+        self._yes_answers = {"да", "да!", "конечно", "разумеется", "ага", "yes", "go"}
+        self._no_answers = {"нет", "неа", "не сейчас", "no"}
+        self._menu_aliases = {"menu", "меню"}
+        self._awaiting_confirmation: Set[int] = set()
+        self._active_sessions: Set[int] = set()
+        self._skip_outgoing: Set[int] = set()
 
-def _chunk_text(text: str, limit: int = 3500) -> List[str]:
-    prepared = text.strip()
-    if not prepared:
-        return []
-    parts = [part.strip() for part in prepared.split("\n\n")]
-    parts = [p for p in parts if p]
-    if not parts:
-        return [prepared]
-    chunks: List[str] = []
-    buffer = ""
-    for part in parts:
-        candidate = part if not buffer else buffer + "\n\n" + part
-        if len(candidate) <= limit:
-            buffer = candidate
-            continue
-        if buffer:
-            chunks.append(buffer)
-            buffer = ""
-        if len(part) <= limit:
-            buffer = part
-        else:
-            for start in range(0, len(part), limit):
-                slices = part[start:start + limit]
-                if slices:
-                    chunks.append(slices)
-    if buffer:
-        chunks.append(buffer)
-    return chunks or [prepared]
+    def on_load(self) -> Optional[HookResult]:
+        return None
 
+    async def on_command(self, client, message, command: str, args) -> Optional[HookResult]:
+        normalized = self._normalize_command(command)
+        if not normalized:
+            return None
+        if normalized == "strange":
+            await self._handle_start(client, message)
+            return None
+        if normalized == "stop":
+            await self._handle_stop(client, message)
+            return None
+        if normalized == "menu":
+            await self._handle_menu(client, message)
+            return None
+        if normalized == "help":
+            await self._send_help(client, message)
+            return None
+        topic_key = self._command_aliases.get(normalized)
+        if topic_key:
+            await self._open_topic(client, message, topic_key)
+            return None
+        return None
 
-CHOICES = {
-    "1": "season1",
-    "2": "season2",
-    "3": "season3",
-    "4": "season4",
-    "5": "season5",
-    "6": "characters",
-    "7": "events",
-    "8": "episodes",
-    "9": "farewell",
-    "10": "facts",
-    "11": "music",
-    "12": "help",
-    "0": "everything",
-}
-
-MENU_HEADER = (
-    "Главное меню воспоминаний Stranger Things. Введи цифру 0–12, напиши MENU или воспользуйся командами:\n" + MENU_TEXT
-)
-
-SPOILER_WARNING = (
-    "Внимание, дальше могут быть спойлеры по Stranger Things. Вы согласны продолжить? (да/нет)"
-)
-
-AGREEMENT_REPLY = (
-    "Отлично! Приготовься к путешествию по воспоминаниям. Используй цифры 0–12 или команды, чтобы выбирать разделы.\n"
-    + MENU_TEXT
-)
-
-DECLINE_REPLY = (
-    "Хорошо, сохраню тайны Хоукинса до лучших времён. Если захочешь вернуться — напиши .strange."
-)
-
-FOLLOW_UP_REMINDER = (
-    "Чтобы открыть следующее воспоминание, введи новую цифру, напиши MENU или используй нужную команду."
-)
-
-if loader is None:
-    class BasePlugin:  # type: ignore
-        pass
-
-    def _command_stub(*_args, **_kwargs):  # type: ignore
-        def decorator(func):
-            return func
-
-        return decorator
-else:
-    BasePlugin = getattr(loader, "BasePlugin", getattr(loader, "Module", object))  # type: ignore
-    _command_stub = getattr(loader, "command", lambda *_a, **_k: (lambda f: f))  # type: ignore
-
-
-__all__ = ["StrangerThingsFarewellPlugin"]
-
-
-class StrangerThingsFarewellPlugin(BasePlugin):
-    """Ностальгический гигантский плагин для проводника по Stranger Things."""
-
-    strings = {"name": "StrangerThingsFarewell"}
-
-    def __init__(self) -> None:
-        self._awaiting_confirmation: set[int] = set()
-        self._active_sessions: set[int] = set()
-        self._skip_ids: set[int] = set()
-
-    async def _send_responses(self, message, responses: List[str]) -> None:
-        client = getattr(message, "client", None)
-        if client is None:
+    async def on_text(self, client, message) -> None:
+        message_id = getattr(message, "id", None)
+        if message_id in self._skip_outgoing:
+            self._skip_outgoing.discard(message_id)
             return
-        for response in responses:
-            for chunk in _chunk_text(response):
-                sent = await client.send_message(message.chat_id, chunk)
-                if sent is not None:
-                    self._skip_ids.add(sent.id)
-
-    def _topic_text(self, key: str) -> List[str]:
-        if key == "help":
-            return _chunk_text(HELP_TEXT)
-        text = TEXTS.get(key)
-        if not text:
-            return [
-                "Извини, похоже, воспоминания ещё не оформлены. Попробуй выбрать другой раздел или открой меню командой MENU."
-            ]
-        return _chunk_text(text)
-
-    async def _respond_with_choice(self, message, choice: str) -> None:
-        key = CHOICES.get(choice)
-        if not key:
-            await self._send_responses(message, ["Не смог распознать выбор. Введи цифру из меню или напиши MENU."])
-            return
-        responses = self._topic_text(key)
-        await self._send_responses(message, responses)
-        if key != "help":
-            await self._send_responses(message, [FOLLOW_UP_REMINDER])
-
-    async def _show_menu(self, message) -> None:
-        await self._send_responses(message, [MENU_HEADER])
-
-    @_command_stub()
-    async def strange(self, message) -> None:
-        chat_id = message.chat_id
-        self._awaiting_confirmation.add(chat_id)
-        self._active_sessions.discard(chat_id)
-        await self._send_responses(
-            message,
-            [
-                "Привет! Я Stranger Things Farewell Bot — проводник по тёплым воспоминаниям.",
-                SPOILER_WARNING,
-            ],
-        )
-
-    @_command_stub()
-    async def stop(self, message) -> None:
-        chat_id = message.chat_id
-        self._awaiting_confirmation.discard(chat_id)
-        self._active_sessions.discard(chat_id)
-        await self._send_responses(
-            message,
-            ["Бот остановлен. Если захочешь вернуться в Хоукинс — напиши .strange."],
-        )
-
-    @_command_stub()
-    async def menu(self, message) -> None:
-        if message.chat_id not in self._active_sessions:
-            await self._send_responses(
-                message,
-                ["Меню доступно после согласия со спойлерами. Напиши .strange, чтобы начать."],
-            )
-            return
-        await self._show_menu(message)
-
-    @_command_stub()
-    async def help(self, message) -> None:
-        await self._send_responses(message, _chunk_text(HELP_TEXT))
-
-    @_command_stub()
-    async def season1(self, message) -> None:
-        await self._send_responses(message, self._topic_text("season1"))
-
-    @_command_stub()
-    async def season2(self, message) -> None:
-        await self._send_responses(message, self._topic_text("season2"))
-
-    @_command_stub()
-    async def season3(self, message) -> None:
-        await self._send_responses(message, self._topic_text("season3"))
-
-    @_command_stub()
-    async def season4(self, message) -> None:
-        await self._send_responses(message, self._topic_text("season4"))
-
-    @_command_stub()
-    async def season5(self, message) -> None:
-        await self._send_responses(message, self._topic_text("season5"))
-
-    @_command_stub()
-    async def characters(self, message) -> None:
-        await self._send_responses(message, self._topic_text("characters"))
-
-    @_command_stub()
-    async def events(self, message) -> None:
-        await self._send_responses(message, self._topic_text("events"))
-
-    @_command_stub()
-    async def episodes(self, message) -> None:
-        await self._send_responses(message, self._topic_text("episodes"))
-
-    @_command_stub()
-    async def facts(self, message) -> None:
-        await self._send_responses(message, self._topic_text("facts"))
-
-    @_command_stub()
-    async def music(self, message) -> None:
-        await self._send_responses(message, self._topic_text("music"))
-
-    @_command_stub()
-    async def farewell(self, message) -> None:
-        await self._send_responses(message, self._topic_text("farewell"))
-
-    @_command_stub()
-    async def everything(self, message) -> None:
-        await self._send_responses(message, self._topic_text("everything"))
-
-    async def watcher(self, message) -> None:  # type: ignore
-        if message.id in self._skip_ids:
-            self._skip_ids.discard(message.id)
+        if getattr(message, "out", False):
             return
         text = getattr(message, "raw_text", None)
         if not text:
             return
-        chat_id = getattr(message, "chat_id", None)
+        chat_id = self._get_chat_id(message)
         if chat_id is None:
             return
         cleaned = text.strip()
         if not cleaned:
             return
-        lower = cleaned.lower()
-        if cleaned.startswith('.'):
-            return
+        lowered = cleaned.lower()
         if chat_id in self._awaiting_confirmation:
-            if lower in {"да", "да!", "конечно", "go", "yes"}:
-                self._awaiting_confirmation.discard(chat_id)
-                self._active_sessions.add(chat_id)
-                await self._send_responses(message, ["Спасибо, что готов погрузиться в воспоминания!", AGREEMENT_REPLY])
+            if lowered in self._yes_answers:
+                await self._complete_confirmation(client, message, chat_id)
                 return
-            if lower in {"нет", "неа", "no"}:
-                self._awaiting_confirmation.discard(chat_id)
-                await self._send_responses(message, [DECLINE_REPLY])
+            if lowered in self._no_answers:
+                await self._decline_confirmation(client, message, chat_id)
                 return
-            await self._send_responses(
-                message,
-                ["Не расслышал ответ. Напиши «да», если готов к спойлерам, или «нет», чтобы отложить встречу."],
-            )
+            await self._send_responses(client, message, ["Не расслышал ответ. Напиши «да», если готов к спойлерам, или «нет», чтобы отложить встречу.\n" + self._spoiler_warning])
             return
         if chat_id not in self._active_sessions:
             return
-        if lower in {"menu", "меню"}:
-            await self._show_menu(message)
+        if lowered in self._menu_aliases:
+            await self._handle_menu(client, message)
             return
-        if lower in CHOICES:
-            await self._respond_with_choice(message, lower)
+        if lowered in self._command_aliases:
+            await self._open_topic(client, message, self._command_aliases[lowered])
             return
-        if cleaned.isdigit() and cleaned in CHOICES:
-            await self._respond_with_choice(message, cleaned)
+        if cleaned in self._command_aliases:
+            await self._open_topic(client, message, self._command_aliases[cleaned])
             return
-        await self._send_responses(
-            message,
-            [
-                "Похоже, это воспоминание пока не описано. Используй цифры 0–12, напиши MENU или вызови .help для подсказок.",
-            ],
-        )
+        await self._send_responses(client, message, ["Похоже, это воспоминание пока не описано. Используй цифры 0–12, напиши MENU или вызови .help для подсказок."])
+
+    def _normalize_command(self, command: Optional[str]) -> str:
+        if not command:
+            return ""
+        prepared = command.strip()
+        if prepared.startswith('.'):
+            prepared = prepared[1:]
+        return prepared.lower()
+
+    def _get_chat_id(self, message) -> int | None:
+        if hasattr(message, "chat_id"):
+            return getattr(message, "chat_id")
+        if hasattr(message, "peer_id"):
+            return getattr(message, "peer_id")
+        return None
+
+    async def _handle_start(self, client, message) -> None:
+        chat_id = self._get_chat_id(message)
+        if chat_id is None:
+            return
+        self._awaiting_confirmation.add(chat_id)
+        self._active_sessions.discard(chat_id)
+        await self._send_responses(client, message, [self._start_greeting, self._spoiler_warning])
+
+    async def _handle_stop(self, client, message) -> None:
+        chat_id = self._get_chat_id(message)
+        if chat_id is None:
+            return
+        self._awaiting_confirmation.discard(chat_id)
+        self._active_sessions.discard(chat_id)
+        await self._send_responses(client, message, ["Бот остановлен. Если захочешь вернуться в Хоукинс — напиши .strange."])
+
+    async def _handle_menu(self, client, message) -> None:
+        chat_id = self._get_chat_id(message)
+        if chat_id is None or chat_id not in self._active_sessions:
+            await self._send_responses(client, message, ["Меню доступно после подтверждения спойлеров. Напиши .strange, чтобы начать."])
+            return
+        await self._send_responses(client, message, [self._menu_header])
+
+    async def _send_help(self, client, message) -> None:
+        await self._send_responses(client, message, [self._help_text])
+
+    async def _complete_confirmation(self, client, message, chat_id: int) -> None:
+        self._awaiting_confirmation.discard(chat_id)
+        self._active_sessions.add(chat_id)
+        await self._send_responses(client, message, ["Спасибо, что готов погрузиться в воспоминания!", self._agreement_reply, self._follow_up_reminder])
+
+    async def _decline_confirmation(self, client, message, chat_id: int) -> None:
+        self._awaiting_confirmation.discard(chat_id)
+        self._active_sessions.discard(chat_id)
+        await self._send_responses(client, message, [self._decline_reply])
+
+    async def _open_topic(self, client, message, key: str) -> None:
+        if key == "help":
+            await self._send_help(client, message)
+            return
+        chat_id = self._get_chat_id(message)
+        if chat_id is None or chat_id not in self._active_sessions:
+            if key in ('season1', 'season2', 'season3', 'season4', 'season5', 'characters', 'events', 'episodes', 'facts', 'music', 'farewell', 'everything'):
+                await self._send_responses(client, message, ["Сначала напиши .strange и подтверди готовность к спойлерам."])
+            return
+        text = self._topic_texts.get(key)
+        if not text:
+            await self._send_responses(client, message, ["Пока нет записей для этого раздела. Попробуй другой пункт меню."])
+            return
+        await self._send_responses(client, message, [text, self._follow_up_reminder])
+
+    async def _send_responses(self, client, message, responses) -> None:
+        if not responses:
+            return
+        if not isinstance(responses, (list, tuple)):
+            responses = [responses]
+        jobs: List[str] = []
+        for response in responses:
+            if not response:
+                continue
+            for chunk in self._chunk_text(str(response)):
+                jobs.append(chunk)
+        if not jobs:
+            return
+        async def runner():
+            for chunk in jobs:
+                sent = await send_text(client, message, chunk)
+                sent_id = getattr(sent, "id", None)
+                if sent_id is not None:
+                    self._skip_outgoing.add(sent_id)
+        try:
+            maybe = run_on_queue(runner())
+            if maybe is not None:
+                await maybe
+        except TypeError:
+            await runner()
+        except RuntimeError:
+            await runner()
+
+    def _chunk_text(self, text: str, limit: int = 3500) -> List[str]:
+        prepared = text.strip()
+        if not prepared:
+            return []
+        parts = [part.strip() for part in prepared.split("\n\n")]
+        parts = [p for p in parts if p]
+        if not parts:
+            return [prepared]
+        chunks: List[str] = []
+        buffer = ""
+        for part in parts:
+            candidate = part if not buffer else buffer + "\n\n" + part
+            if len(candidate) <= limit:
+                buffer = candidate
+                continue
+            if buffer:
+                chunks.append(buffer)
+                buffer = ""
+            if len(part) <= limit:
+                buffer = part
+            else:
+                for start in range(0, len(part), limit):
+                    piece = part[start:start + limit]
+                    if piece:
+                        chunks.append(piece)
+        if buffer:
+            chunks.append(buffer)
+        return chunks or [prepared]
