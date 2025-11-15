@@ -809,8 +809,14 @@ async def watcher(event):
 
 
 async def _start_client() -> None:
-    await client.start(phone=phone)
-    print("Stranger Things Farewell userbot запущен. Команда .strange ждёт тебя.")
+    await client.connect()
+    if await client.is_user_authorized():
+        print(
+            "Сессия Stranger Things Farewell восстановлена. Команда .strange ждёт тебя."
+        )
+    else:
+        await client.start(phone=phone)
+        print("Стартовая авторизация завершена. Команда .strange ждёт тебя.")
 
 
 def main() -> None:
