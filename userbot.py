@@ -2,16 +2,24 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 from typing import Dict, List, Set
 
 from telethon import TelegramClient, events
 
 
 SESSION_NAME = "stranger_things_farewell"
+SESSION_PATH = Path(f"{SESSION_NAME}.session")
+SESSION_EXISTS = SESSION_PATH.exists()
 
-api_id = int(input("API ID: "))
-api_hash = input("API HASH: ")
-phone = input("PHONE (+375...): ")
+if SESSION_EXISTS:
+    api_id = 0
+    api_hash = "stranger_things_placeholder"
+    phone: str | None = None
+else:
+    api_id = int(input("API ID: "))
+    api_hash = input("API HASH: ")
+    phone = input("PHONE (+375...): ")
 
 client = TelegramClient(SESSION_NAME, api_id, api_hash)
 
@@ -809,14 +817,19 @@ async def watcher(event):
 
 
 async def _start_client() -> None:
-    await client.connect()
-    if await client.is_user_authorized():
+    if SESSION_EXISTS:
+        await client.connect()
+        if await client.is_user_authorized():
+            print(
+                "Сессия Stranger Things Farewell восстановлена. Команда .strange ждёт тебя."
+            )
+            return
         print(
-            "Сессия Stranger Things Farewell восстановлена. Команда .strange ждёт тебя."
+            "Сохранённая сессия не авторизована. Удали файл stranger_things_farewell.session и запусти бота заново для новой авторизации."
         )
-    else:
-        await client.start(phone=phone)
-        print("Стартовая авторизация завершена. Команда .strange ждёт тебя.")
+        return
+    await client.start(phone=phone)
+    print("Стартовая авторизация завершена. Команда .strange ждёт тебя.")
 
 
 def main() -> None:
